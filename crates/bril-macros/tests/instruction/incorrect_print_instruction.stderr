@@ -1,0 +1,7 @@
+error: invalid instruction
+ --> tests/instruction/incorrect_print_instruction.rs:5:1
+  |
+5 | instruction!(op = print, args = [a], value = 1);
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `instruction` (in Nightly builds, run with -Z macro-backtrace for more info)

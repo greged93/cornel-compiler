@@ -12,3 +12,6 @@ bril = { path = "../bril" }
 proc-macro2 = "1.0.86"
 quote = "1.0.37"
 syn = "2.0.76"
+
+[dev-dependencies]
+trybuild = "1.0.99"
