@@ -98,6 +98,11 @@ impl Parse for Instruction {
             return Err(error!(input.span(), "'op' attribute needs to be set"));
         }
 
+        // Before returning, we verify if the instruction is a valid instruction
+        if !instruction.0.is_valid() {
+            return Err(error!(input.span(), "invalid instruction"));
+        }
+
         Ok(instruction)
     }
 }

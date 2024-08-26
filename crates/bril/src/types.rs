@@ -1,3 +1,4 @@
+use crate::{all_none, all_some};
 use eyre::eyre;
 use serde::Deserialize;
 use std::str::FromStr;
@@ -33,6 +34,30 @@ pub struct Instruction {
     pub dest: Option<String>,
 }
 
+impl Instruction {
+    /// Verifies if the instruction is a valid instruction
+    pub fn is_valid(&self) -> bool {
+        let count_args = self.args.as_ref().map(|a| a.len()).unwrap_or_default();
+        let one_args = count_args == 1;
+        let two_args = count_args == 2;
+        let three_args = count_args == 3;
+        match self.op {
+            Operation::Const => {
+                all_some!(self.value, self.dest) && all_none!(self.args, self.r#type)
+            }
+            Operation::Add => {
+                all_some!(self.dest) && all_none!(self.value, self.r#type) && two_args
+            }
+            Operation::Mul => {
+                all_some!(self.dest) && all_none!(self.value, self.r#type) && two_args
+            }
+            Operation::Print => all_none!(self.value, self.r#type, self.dest) && one_args,
+            Operation::Br => all_none!(self.r#type, self.value, self.dest) && three_args,
+            Operation::Jmp => all_none!(self.value, self.r#type, self.dest),
+        }
+    }
+}
+
 #[derive(Debug, Default, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Operation {
@@ -41,8 +66,6 @@ pub enum Operation {
     Add,
     Mul,
     Print,
-    Alloc,
-    Free,
     Br,
     Jmp,
 }
@@ -56,8 +79,6 @@ impl FromStr for Operation {
             "add" => Ok(Operation::Add),
             "mul" => Ok(Operation::Mul),
             "print" => Ok(Operation::Print),
-            "alloc" => Ok(Operation::Alloc),
-            "free" => Ok(Operation::Free),
             "br" => Ok(Operation::Br),
             "jmp" => Ok(Operation::Jmp),
             val => Err(eyre!("incorrect operation, got {val}")),
