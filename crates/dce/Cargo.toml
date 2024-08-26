@@ -1,0 +1,10 @@
+[package]
+name = "dce"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+bril = { path = "../bril" }
+bril-macros = { path = "../bril-macros" }
+
+eyre.workspace = true
