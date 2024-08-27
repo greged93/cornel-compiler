@@ -44,10 +44,8 @@ fn single_pass_dce(mut block: Block) -> Block {
         }
 
         // Insert the args as being used
-        if let Some(args) = instr.args.as_ref() {
-            for arg in args {
-                used.insert(arg.clone(), true);
-            }
+        for arg in instr.args.iter() {
+            used.insert(arg.clone(), true);
         }
     }
 
@@ -89,7 +87,7 @@ mod tests {
         ];
 
         // When
-        let optimized_block = single_pass_dce(block.clone());
+        let optimized_block = single_pass_dce(block);
 
         // Then
         let expected_block = vec![
@@ -137,7 +135,7 @@ mod tests {
         ];
 
         // When
-        let optimized_block = multi_pass_dce(block.clone());
+        let optimized_block = multi_pass_dce(block);
 
         // Then
         let expected_block = vec![

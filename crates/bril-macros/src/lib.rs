@@ -50,6 +50,7 @@ impl Parse for Instruction {
         }
 
         let mut has_operation = false;
+        let mut has_args = false;
         let mut instruction = Instruction::default();
 
         // Keep parsing while there are values in the stream
@@ -61,10 +62,11 @@ impl Parse for Instruction {
                 instruction.0.op = Operation::parse(input)?.0;
                 has_operation = true;
             } else if input.peek(kw::args) {
-                if instruction.0.args.is_some() {
+                if has_args {
                     return Err(error!(input.span(), "args already set"));
                 }
-                instruction.0.args = Some(Args::parse(input)?.0);
+                instruction.0.args = Args::parse(input)?.0;
+                has_args = true;
             } else if input.peek(kw::value) {
                 if instruction.0.value.is_some() {
                     return Err(error!(input.span(), "value already set"));
@@ -114,15 +116,7 @@ impl ToTokens for Instruction {
         let op = Ident::new(&format!("{:?}", self.0.op), Span::call_site());
         let op = quote!(bril::types::Operation::#op);
 
-        let args = self
-            .0
-            .args
-            .as_ref()
-            .map(|args| {
-                let args = args.iter().map(|a| quote!(#a.to_string()));
-                quote!(Some(vec![#(#args,)*]))
-            })
-            .unwrap_or_else(|| none.clone());
+        let args = self.0.args.iter().map(|arg| quote!(#arg.into()));
 
         let ty = self
             .0
@@ -151,7 +145,7 @@ impl ToTokens for Instruction {
         let instr = quote!(
             bril::types::Instruction {
                 op: #op,
-                args: #args,
+                args: vec![#(#args,)*],
                 value: #value,
                 dest: #dest,
                 r#type: #ty

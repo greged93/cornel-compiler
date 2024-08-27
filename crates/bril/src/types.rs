@@ -28,7 +28,7 @@ pub struct Function {
 #[derive(Debug, Clone, Default, PartialEq, Deserialize)]
 pub struct Instruction {
     pub op: Operation,
-    pub args: Option<Args>,
+    pub args: Args,
     pub r#type: Option<Type>,
     pub value: Option<u32>,
     pub dest: Option<String>,
@@ -37,13 +37,14 @@ pub struct Instruction {
 impl Instruction {
     /// Verifies if the instruction is a valid instruction
     pub fn is_valid(&self) -> bool {
-        let count_args = self.args.as_ref().map(|a| a.len()).unwrap_or_default();
+        let count_args = self.args.len();
+        let no_args = self.args.is_empty();
         let one_args = count_args == 1;
         let two_args = count_args == 2;
         let three_args = count_args == 3;
         match self.op {
             Operation::Const => {
-                all_some!(self.value, self.dest) && all_none!(self.args, self.r#type)
+                all_some!(self.value, self.dest) && all_none!(self.r#type) && no_args
             }
             Operation::Add => {
                 all_some!(self.dest) && all_none!(self.value, self.r#type) && two_args
@@ -51,20 +52,27 @@ impl Instruction {
             Operation::Mul => {
                 all_some!(self.dest) && all_none!(self.value, self.r#type) && two_args
             }
+            Operation::Id => all_some!(self.dest) && all_none!(self.value, self.r#type) && one_args,
             Operation::Print => all_none!(self.value, self.r#type, self.dest) && one_args,
             Operation::Br => all_none!(self.r#type, self.value, self.dest) && three_args,
             Operation::Jmp => all_none!(self.value, self.r#type, self.dest),
         }
     }
+
+    /// Returns true if the instruction is a assignment (const operation)
+    pub fn is_assignment(&self) -> bool {
+        self.op == Operation::Const
+    }
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Deserialize)]
+#[derive(Debug, Default, Hash, Clone, Eq, PartialEq, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Operation {
     #[default]
     Const,
     Add,
     Mul,
+    Id,
     Print,
     Br,
     Jmp,
@@ -78,17 +86,12 @@ impl FromStr for Operation {
             "const" => Ok(Operation::Const),
             "add" => Ok(Operation::Add),
             "mul" => Ok(Operation::Mul),
+            "id" => Ok(Operation::Id),
             "print" => Ok(Operation::Print),
             "br" => Ok(Operation::Br),
             "jmp" => Ok(Operation::Jmp),
             val => Err(eyre!("incorrect operation, got {val}")),
         }
-    }
-}
-
-impl Operation {
-    pub fn is_assignment(&self) -> bool {
-        self == &Operation::Const
     }
 }
 
@@ -126,13 +129,15 @@ mod tests {
                       "dest": "v0",
                       "op": "const",
                       "type": "int",
-                      "value": 1
+                      "value": 1,
+                      "args": []
                     },
                     {
                       "dest": "v1",
                       "op": "const",
                       "type": "int",
-                      "value": 2
+                      "value": 2,
+                      "args": []
                     },
                     {
                       "args": [
