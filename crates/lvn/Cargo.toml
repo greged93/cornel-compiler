@@ -5,3 +5,6 @@ edition = "2021"
 
 [dependencies]
 bril = { path = "../bril" }
+bril-macros = { path = "../bril-macros" }
+
+eyre.workspace = true

@@ -86,6 +86,8 @@ name = "lvn"
 version = "0.0.0"
 dependencies = [
  "bril",
+ "bril-macros",
+ "eyre",
 ]
 
 [[package]]
