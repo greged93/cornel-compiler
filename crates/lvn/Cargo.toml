@@ -8,3 +8,4 @@ bril = { path = "../bril" }
 bril-macros = { path = "../bril-macros" }
 
 eyre.workspace = true
+pretty_assertions = "1.4.0"
