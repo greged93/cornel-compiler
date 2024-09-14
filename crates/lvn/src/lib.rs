@@ -14,6 +14,10 @@ pub fn local_value_numbering(mut block: Block) -> eyre::Result<Block> {
     for i in block.iter_mut() {
         // Handle the id instruction in a special case
         if i.op == Operation::Id {
+            // Take the argument of the operation, fetch the number
+            // and point the destination to this number. Then, update
+            // the args by taking the var corresponding to this number.
+            // Example: (copy: int = id x -> var2num[copy] = var2num[x] and args = x)
             let a = i.args.first().ok_or(eyre!("missing argument for Id"))?;
             let num = var2num
                 .get(a)
@@ -77,7 +81,7 @@ pub fn local_value_numbering(mut block: Block) -> eyre::Result<Block> {
             Entry::Occupied(e) => {
                 let (var, n) = e.get();
                 var2num.insert(dest, *n);
-                i.op = bril::types::Operation::Id;
+                i.op = Operation::Id;
                 i.args = vec![var.clone()];
             }
         };
